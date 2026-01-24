@@ -244,11 +244,12 @@ export class GitHubOperations {
   }
 
   async mergePullRequest(prNumber: number, mergeMethod: 'merge' | 'squash' | 'rebase' = 'squash'): Promise<void> {
-    logger.detail(`Merging PR #${prNumber} using ${mergeMethod}...`);
+    logger.detail(`Merging PR #${prNumber} using ${mergeMethod} (admin)...`);
     
     this.exec(`gh pr merge ${prNumber} \
       --repo "${this.config.owner}/${this.config.repo}" \
       --${mergeMethod} \
+      --admin \
       --delete-branch`);
     
     logger.detail('PR merged successfully');
