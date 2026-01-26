@@ -26,7 +26,7 @@ program
       
       if (repos.length === 0) {
         logger.error('No repositories configured.');
-        logger.info('Add a repository with: mkrelease add <name>');
+        logger.info('Add a repository with: npx mkrelease add <name>');
         process.exit(1);
       }
 
@@ -41,7 +41,7 @@ program
     if (!config) {
       logger.error(`Repository "${repo}" not found.`);
       logger.info('Available repositories: ' + listRepos().join(', '));
-      logger.info('Add a new repository with: mkrelease add <name>');
+      logger.info('Add a new repository with: npx mkrelease add <name>');
       process.exit(1);
     }
 
@@ -104,7 +104,7 @@ program
     
     if (repos.length === 0) {
       logger.info('No repositories configured.');
-      logger.info('Add a repository with: mkrelease add <name>');
+      logger.info('Add a repository with: npx mkrelease add <name>');
       return;
     }
 

@@ -11,12 +11,6 @@ CLI tool to automate changeset-based releases with AI-generated descriptions.
 
 The target repository must use [changesets](https://github.com/changesets/changesets) for versioning.
 
-## Installation
-
-```bash
-npm install -g mkrelease
-```
-
 ## Setup
 
 ### 1. Authenticate GitHub CLI
@@ -34,7 +28,7 @@ export ANTHROPIC_API_KEY=your-key
 ### 3. Add a repository
 
 ```bash
-mkrelease add myproject
+npx mkrelease add myproject
 ```
 
 You'll be prompted for:
@@ -47,7 +41,7 @@ You'll be prompted for:
 ### Start a release
 
 ```bash
-mkrelease [repo]
+npx mkrelease [repo]
 ```
 
 If no repo is specified, you'll be prompted to select one.
@@ -75,19 +69,19 @@ The tool will:
 
 ```bash
 # Interactive release
-mkrelease myproject
+npx mkrelease myproject
 
 # Patch release with custom message
-mkrelease myproject -t patch -m "Fixed login bug"
+npx mkrelease myproject -t patch -m "Fixed login bug"
 
 # Fully automated minor release
-mkrelease myproject -t minor -y
+npx mkrelease myproject -t minor -y
 ```
 
 ### List configured repositories
 
 ```bash
-mkrelease list
+npx mkrelease list
 ```
 
 ## Configuration
