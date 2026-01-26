@@ -3,15 +3,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 
-// Known repository configurations
-const REPO_CONFIGS: Record<string, RepoConfig> = {
-  'agent-browser': {
-    owner: 'vercel-labs',
-    repo: 'agent-browser',
-    baseBranch: 'main',
-    cloneUrl: 'https://github.com/vercel-labs/agent-browser.git',
-  },
-};
+// Built-in repository configurations (users can add more via `mkrelease add`)
+const REPO_CONFIGS: Record<string, RepoConfig> = {};
 
 const CONFIG_DIR = path.join(os.homedir(), '.mkrelease');
 const CONFIG_FILE = path.join(CONFIG_DIR, 'config.json');

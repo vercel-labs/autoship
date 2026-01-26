@@ -1,7 +1,7 @@
 {
   "name": "mkrelease",
   "version": "0.1.0",
-  "description": "CLI tool to automate changeset-based releases",
+  "description": "CLI tool to automate changeset-based releases with AI-generated descriptions",
   "type": "module",
   "main": "dist/index.js",
   "bin": {
@@ -19,9 +19,24 @@
     "release",
     "changeset",
     "cli",
-    "automation"
+    "automation",
+    "ai",
+    "semver",
+    "npm"
   ],
+  "author": "Vercel Labs",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vercel-labs/mkrelease.git"
+  },
+  "homepage": "https://github.com/vercel-labs/mkrelease#readme",
+  "bugs": {
+    "url": "https://github.com/vercel-labs/mkrelease/issues"
+  },
   "license": "Apache-2.0",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "dependencies": {
     "@inquirer/prompts": "^8.2.0",
     "ai": "^6.0.49",

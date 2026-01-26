@@ -98,6 +98,24 @@ npx mkrelease list
 
 Config is stored at `~/.mkrelease/config.json`.
 
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+```bash
+# Clone the repo
+git clone https://github.com/vercel-labs/mkrelease.git
+
+# Install dependencies
+pnpm install
+
+# Run tests
+pnpm test
+
+# Build
+pnpm build
+```
+
 ## License
 
 Apache-2.0

@@ -33,20 +33,7 @@ describe('config', () => {
   });
 
   describe('getRepoConfig', () => {
-    it('should return built-in config for known repos', () => {
-      vi.mocked(fs.existsSync).mockReturnValue(false);
-
-      const config = getRepoConfig('agent-browser');
-      
-      expect(config).toEqual({
-        owner: 'vercel-labs',
-        repo: 'agent-browser',
-        baseBranch: 'main',
-        cloneUrl: 'https://github.com/vercel-labs/agent-browser.git',
-      });
-    });
-
-    it('should return stored config if not built-in', () => {
+    it('should return stored config', () => {
       const storedConfig = {
         repos: {
           'my-repo': {
@@ -126,15 +113,15 @@ describe('config', () => {
   });
 
   describe('listRepos', () => {
-    it('should return built-in repos when no stored config', () => {
+    it('should return empty array when no stored config', () => {
       vi.mocked(fs.existsSync).mockReturnValue(false);
 
       const repos = listRepos();
       
-      expect(repos).toContain('agent-browser');
+      expect(repos).toEqual([]);
     });
 
-    it('should combine built-in and stored repos', () => {
+    it('should return stored repos', () => {
       const storedConfig = {
         repos: {
           'custom-repo': {
@@ -151,7 +138,6 @@ describe('config', () => {
 
       const repos = listRepos();
       
-      expect(repos).toContain('agent-browser');
       expect(repos).toContain('custom-repo');
     });
   });
