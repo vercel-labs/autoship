@@ -2,6 +2,16 @@
 
 CLI tool to automate changeset-based releases with AI-generated descriptions.
 
+## Features
+
+- **AI-Powered Release Analysis** - Automatically suggests release type (patch/minor/major) based on commit history and code changes
+- **Smart Changeset Generation** - Generates clear, concise changeset descriptions using AI
+- **End-to-End Automation** - Handles the full release workflow from clone to publish
+- **CI Integration** - Waits for checks to pass before merging
+- **Interactive & Headless Modes** - Use interactively or fully automated with `-y` flag
+- **Multi-Repository Support** - Configure and manage multiple repositories
+- **Changesets Compatible** - Works with any repository using the changesets workflow
+
 ## Requirements
 
 - **Node.js** 18+
