@@ -1,11 +1,11 @@
 {
-  "name": "release-cli",
+  "name": "mkrelease",
   "version": "0.1.0",
   "description": "CLI tool to automate changeset-based releases",
   "type": "module",
   "main": "dist/index.js",
   "bin": {
-    "release": "./dist/index.js"
+    "mkrelease": "./dist/index.js"
   },
   "scripts": {
     "build": "tsc",

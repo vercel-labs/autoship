@@ -10,7 +10,7 @@ import { RepoConfig, ReleaseOptions } from './types.js';
 const program = new Command();
 
 program
-  .name('release')
+  .name('mkrelease')
   .description('CLI tool to automate changeset-based releases')
   .version('0.1.0');
 
@@ -26,7 +26,7 @@ program
       
       if (repos.length === 0) {
         logger.error('No repositories configured.');
-        logger.info('Add a repository with: release add <name>');
+        logger.info('Add a repository with: mkrelease add <name>');
         process.exit(1);
       }
 
@@ -41,7 +41,7 @@ program
     if (!config) {
       logger.error(`Repository "${repo}" not found.`);
       logger.info('Available repositories: ' + listRepos().join(', '));
-      logger.info('Add a new repository with: release add <name>');
+      logger.info('Add a new repository with: mkrelease add <name>');
       process.exit(1);
     }
 
@@ -104,7 +104,7 @@ program
     
     if (repos.length === 0) {
       logger.info('No repositories configured.');
-      logger.info('Add a repository with: release add <name>');
+      logger.info('Add a repository with: mkrelease add <name>');
       return;
     }
 
