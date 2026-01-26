@@ -6,7 +6,7 @@ import * as os from 'os';
 // Built-in repository configurations (users can add more via `mkrelease add`)
 const REPO_CONFIGS: Record<string, RepoConfig> = {};
 
-const CONFIG_DIR = path.join(os.homedir(), '.mkrelease');
+const CONFIG_DIR = path.join(os.homedir(), '.autoship');
 const CONFIG_FILE = path.join(CONFIG_DIR, 'config.json');
 
 interface StoredConfig {
@@ -58,5 +58,5 @@ export function listRepos(): string[] {
 }
 
 export function getTempDir(): string {
-  return path.join(os.tmpdir(), 'mkrelease');
+  return path.join(os.tmpdir(), 'autoship');
 }

@@ -20,8 +20,8 @@ const { getRepoConfig, addRepoConfig, listRepos, getTempDir } = await import('./
 
 describe('config', () => {
   const mockHomedir = '/mock/home';
-  const mockConfigDir = '/mock/home/.mkrelease';
-  const mockConfigFile = '/mock/home/.mkrelease/config.json';
+  const mockConfigDir = '/mock/home/.autoship';
+  const mockConfigFile = '/mock/home/.autoship/config.json';
 
   beforeEach(() => {
     vi.mocked(os.homedir).mockReturnValue(mockHomedir);
@@ -146,7 +146,7 @@ describe('config', () => {
     it('should return temp directory path', () => {
       const tempDir = getTempDir();
       
-      expect(tempDir).toBe('/mock/tmp/mkrelease');
+      expect(tempDir).toBe('/mock/tmp/autoship');
     });
   });
 });

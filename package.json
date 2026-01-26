@@ -1,11 +1,11 @@
 {
-  "name": "mkrelease",
+  "name": "autoship",
   "version": "0.1.0",
   "description": "CLI tool to automate changeset-based releases with AI-generated descriptions",
   "type": "module",
   "main": "dist/index.js",
   "bin": {
-    "mkrelease": "./dist/index.js"
+    "autoship": "./dist/index.js"
   },
   "scripts": {
     "build": "tsc",
@@ -27,11 +27,11 @@
   "author": "Vercel Labs",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/vercel-labs/mkrelease.git"
+    "url": "git+https://github.com/vercel-labs/autoship.git"
   },
-  "homepage": "https://github.com/vercel-labs/mkrelease#readme",
+  "homepage": "https://github.com/vercel-labs/autoship#readme",
   "bugs": {
-    "url": "https://github.com/vercel-labs/mkrelease/issues"
+    "url": "https://github.com/vercel-labs/autoship/issues"
   },
   "license": "Apache-2.0",
   "engines": {

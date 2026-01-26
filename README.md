@@ -1,4 +1,4 @@
-# mkrelease
+# autoship
 
 CLI tool to automate changeset-based releases with AI-generated descriptions.
 
@@ -38,7 +38,7 @@ export AI_GATEWAY_API_KEY=your-key
 ### 3. Add a repository
 
 ```bash
-npx mkrelease add myproject
+npx autoship add myproject
 ```
 
 You'll be prompted for:
@@ -51,7 +51,7 @@ You'll be prompted for:
 ### Start a release
 
 ```bash
-npx mkrelease [repo]
+npx autoship [repo]
 ```
 
 If no repo is specified, you'll be prompted to select one.
@@ -79,24 +79,24 @@ The tool will:
 
 ```bash
 # Interactive release
-npx mkrelease myproject
+npx autoship myproject
 
 # Patch release with custom message
-npx mkrelease myproject -t patch -m "Fixed login bug"
+npx autoship myproject -t patch -m "Fixed login bug"
 
 # Fully automated minor release
-npx mkrelease myproject -t minor -y
+npx autoship myproject -t minor -y
 ```
 
 ### List configured repositories
 
 ```bash
-npx mkrelease list
+npx autoship list
 ```
 
 ## Configuration
 
-Config is stored at `~/.mkrelease/config.json`.
+Config is stored at `~/.autoship/config.json`.
 
 ## Contributing
 
@@ -104,7 +104,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ```bash
 # Clone the repo
-git clone https://github.com/vercel-labs/mkrelease.git
+git clone https://github.com/vercel-labs/autoship.git
 
 # Install dependencies
 pnpm install

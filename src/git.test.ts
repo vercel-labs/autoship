@@ -8,7 +8,7 @@ vi.mock('simple-git', () => ({
   simpleGit: vi.fn(() => mockGit),
 }));
 vi.mock('./config.js', () => ({
-  getTempDir: vi.fn(() => '/mock/tmp/mkrelease'),
+  getTempDir: vi.fn(() => '/mock/tmp/autoship'),
 }));
 vi.mock('./logger.js', () => ({
   logger: {
@@ -59,7 +59,7 @@ describe('GitOperations', () => {
     it('should return work directory path', () => {
       const workDir = gitOps.getWorkDir();
       
-      expect(workDir).toBe('/mock/tmp/mkrelease/test-repo-abcd1234');
+      expect(workDir).toBe('/mock/tmp/autoship/test-repo-abcd1234');
     });
   });
 
@@ -72,7 +72,7 @@ describe('GitOperations', () => {
 
       expect(mockGit.clone).toHaveBeenCalledWith(
         'https://github.com/test-org/test-repo.git',
-        '/mock/tmp/mkrelease/test-repo-abcd1234',
+        '/mock/tmp/autoship/test-repo-abcd1234',
         ['--depth', '1']
       );
     });
@@ -85,7 +85,7 @@ describe('GitOperations', () => {
       await gitOps.clone();
 
       expect(fs.rmSync).toHaveBeenCalledWith(
-        '/mock/tmp/mkrelease/test-repo-abcd1234',
+        '/mock/tmp/autoship/test-repo-abcd1234',
         { recursive: true }
       );
     });
@@ -110,7 +110,7 @@ describe('GitOperations', () => {
 
       expect(changesetId).toBe('release-abcd1234');
       expect(fs.writeFileSync).toHaveBeenCalledWith(
-        '/mock/tmp/mkrelease/test-repo-abcd1234/.changeset/release-abcd1234.md',
+        '/mock/tmp/autoship/test-repo-abcd1234/.changeset/release-abcd1234.md',
         expect.stringContaining('"my-package": minor')
       );
     });
@@ -171,7 +171,7 @@ describe('GitOperations', () => {
       await gitOps.cleanup();
 
       expect(fs.rmSync).toHaveBeenCalledWith(
-        '/mock/tmp/mkrelease/test-repo-abcd1234',
+        '/mock/tmp/autoship/test-repo-abcd1234',
         { recursive: true }
       );
     });
