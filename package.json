@@ -3,14 +3,15 @@
   "version": "0.1.0",
   "description": "CLI tool to automate changeset-based releases with AI-generated descriptions",
   "type": "module",
-  "main": "dist/index.js",
   "bin": {
-    "autoship": "./dist/index.js"
+    "autoship": "./dist/cli.cjs"
   },
+  "files": [
+    "dist/cli.cjs"
+  ],
   "scripts": {
-    "build": "tsc",
-    "dev": "tsc --watch",
-    "start": "node dist/index.js",
+    "build": "esbuild src/index.ts --bundle --platform=node --format=cjs --outfile=dist/cli.cjs",
+    "build:sea": "node scripts/build-sea.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage"
@@ -47,6 +48,7 @@
   },
   "devDependencies": {
     "@types/node": "^25.0.10",
+    "esbuild": "0.27.2",
     "typescript": "^5.9.3",
     "vitest": "^4.0.18"
   }

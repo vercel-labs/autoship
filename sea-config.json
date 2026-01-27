@@ -1,0 +1,6 @@
+{
+  "main": "dist/sea-bundle.cjs",
+  "output": "dist/autoship",
+  "disableExperimentalSEAWarning": true,
+  "useCodeCache": true
+}
