@@ -1,6 +1,6 @@
 {
   "name": "autoship",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "CLI tool to automate changeset-based releases with AI-generated descriptions",
   "type": "module",
   "main": "dist/index.js",
