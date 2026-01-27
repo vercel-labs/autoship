@@ -1,4 +1,4 @@
-import { confirm, select, input, editor } from '@inquirer/prompts';
+import { confirm, select, text, isCancel, cancel } from '@clack/prompts';
 import ora from 'ora';
 import { RepoConfig, ReleaseOptions } from './types.js';
 import { GitOperations } from './git.js';
@@ -12,7 +12,7 @@ export async function runRelease(
   config: RepoConfig,
   options: Partial<ReleaseOptions> = {}
 ): Promise<void> {
-  logger.header(`🚀 Release: ${config.repo}`);
+  logger.header(`Release: ${config.repo}`);
 
   const git = new GitOperations(config);
   const github = new GitHubOperations(config);
@@ -87,15 +87,22 @@ export async function runRelease(
       const suggestedType = await suggestReleaseType(diffContext);
       spinner.succeed(`AI suggests: ${suggestedType} release`);
 
-      releaseType = await select({
+      const selectedType = await select({
         message: 'What type of release is this?',
-        choices: [
-          { name: 'patch - Bug fixes, small changes', value: 'patch' as const },
-          { name: 'minor - New features, backwards compatible', value: 'minor' as const },
-          { name: 'major - Breaking changes', value: 'major' as const },
+        options: [
+          { label: 'patch - Bug fixes, small changes', value: 'patch' as const },
+          { label: 'minor - New features, backwards compatible', value: 'minor' as const },
+          { label: 'major - Breaking changes', value: 'major' as const },
         ],
-        default: suggestedType,
+        initialValue: suggestedType,
       });
+
+      if (isCancel(selectedType)) {
+        cancel('Release cancelled');
+        await git.cleanup();
+        process.exit(0);
+      }
+      releaseType = selectedType;
     }
 
     // Generate release message with AI
@@ -119,25 +126,49 @@ export async function runRelease(
 
         const useAiMessage = await confirm({
           message: 'Use this description?',
-          default: true,
+          initialValue: true,
         });
+
+        if (isCancel(useAiMessage)) {
+          cancel('Release cancelled');
+          await git.cleanup();
+          process.exit(0);
+        }
 
         if (useAiMessage) {
           releaseMessage = aiMessage;
         } else {
-          releaseMessage = await input({
+          const customMessage = await text({
             message: 'Enter your own description:',
-            validate: (value) => value.length > 0 || 'Message is required',
+            validate: (value) => {
+              if (!value || value.length === 0) return 'Message is required';
+            },
           });
+
+          if (isCancel(customMessage)) {
+            cancel('Release cancelled');
+            await git.cleanup();
+            process.exit(0);
+          }
+          releaseMessage = customMessage;
         }
       } catch (error) {
         spinner.fail('AI generation failed');
         logger.warn('Falling back to manual input');
         
-        releaseMessage = await input({
+        const fallbackMessage = await text({
           message: 'Describe the changes for this release:',
-          validate: (value) => value.length > 0 || 'Message is required',
+          validate: (value) => {
+            if (!value || value.length === 0) return 'Message is required';
+          },
         });
+
+        if (isCancel(fallbackMessage)) {
+          cancel('Release cancelled');
+          await git.cleanup();
+          process.exit(0);
+        }
+        releaseMessage = fallbackMessage;
       }
     }
 
@@ -174,8 +205,14 @@ export async function runRelease(
     if (!fullOptions.skipConfirmations) {
       const shouldContinue = await confirm({
         message: 'Push changes and create PR?',
-        default: true,
+        initialValue: true,
       });
+
+      if (isCancel(shouldContinue)) {
+        cancel('Release cancelled');
+        await git.cleanup();
+        process.exit(0);
+      }
 
       if (!shouldContinue) {
         logger.warn('Release cancelled by user');
@@ -219,8 +256,14 @@ ${fullOptions.message}
     if (!fullOptions.skipConfirmations) {
       const shouldWait = await confirm({
         message: 'Wait for CI checks to pass?',
-        default: true,
+        initialValue: true,
       });
+
+      if (isCancel(shouldWait)) {
+        cancel('Release cancelled');
+        await git.cleanup();
+        process.exit(0);
+      }
 
       if (!shouldWait) {
         logger.info('You can manually merge the PR when ready');
@@ -254,8 +297,14 @@ ${fullOptions.message}
     if (!fullOptions.skipConfirmations) {
       const shouldMerge = await confirm({
         message: 'Merge the changeset PR?',
-        default: true,
+        initialValue: true,
       });
+
+      if (isCancel(shouldMerge)) {
+        cancel('Release cancelled');
+        await git.cleanup();
+        process.exit(0);
+      }
 
       if (!shouldMerge) {
         logger.info('You can manually merge the PR when ready');
@@ -283,8 +332,14 @@ ${fullOptions.message}
     if (!fullOptions.skipConfirmations) {
       const shouldContinueVersion = await confirm({
         message: 'Wait for checks and merge the Version Packages PR?',
-        default: true,
+        initialValue: true,
       });
+
+      if (isCancel(shouldContinueVersion)) {
+        cancel('Release cancelled');
+        await git.cleanup();
+        process.exit(0);
+      }
 
       if (!shouldContinueVersion) {
         logger.info('You can manually merge the Version Packages PR when ready');
@@ -310,8 +365,14 @@ ${fullOptions.message}
     if (!fullOptions.skipConfirmations) {
       const shouldMergeVersion = await confirm({
         message: 'Merge the Version Packages PR to publish the release?',
-        default: true,
+        initialValue: true,
       });
+
+      if (isCancel(shouldMergeVersion)) {
+        cancel('Release cancelled');
+        await git.cleanup();
+        process.exit(0);
+      }
 
       if (!shouldMergeVersion) {
         logger.info('You can manually merge the Version Packages PR when ready');
@@ -327,12 +388,12 @@ ${fullOptions.message}
     spinner.succeed('Version Packages PR merged!');
 
     logger.blank();
-    logger.header('🎉 Release Complete!');
+    logger.header('Release Complete!');
     logger.success(`The ${fullOptions.type} release has been published.`);
     logger.info('The release workflow will now:');
-    logger.detail('• Build binaries for all platforms');
-    logger.detail('• Publish the package to npm');
-    logger.detail('• Create a GitHub release');
+    logger.detail('- Build binaries for all platforms');
+    logger.detail('- Publish the package to npm');
+    logger.detail('- Create a GitHub release');
     
     await git.cleanup();
 

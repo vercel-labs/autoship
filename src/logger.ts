@@ -8,19 +8,19 @@ export class Logger {
   }
 
   info(message: string): void {
-    console.log(chalk.blue('ℹ'), message);
+    console.log(chalk.blue('[info]'), message);
   }
 
   success(message: string): void {
-    console.log(chalk.green('✓'), message);
+    console.log(chalk.green('[ok]'), message);
   }
 
   warn(message: string): void {
-    console.log(chalk.yellow('⚠'), message);
+    console.log(chalk.yellow('[warn]'), message);
   }
 
   error(message: string): void {
-    console.log(chalk.red('✗'), message);
+    console.log(chalk.red('[error]'), message);
   }
 
   step(step: number, total: number, message: string): void {
@@ -29,7 +29,7 @@ export class Logger {
 
   detail(message: string): void {
     if (this.verbose) {
-      console.log(chalk.gray('  →'), chalk.gray(message));
+      console.log(chalk.gray('  >'), chalk.gray(message));
     }
   }
 
@@ -39,26 +39,26 @@ export class Logger {
 
   header(message: string): void {
     console.log();
-    console.log(chalk.bold.magenta('━'.repeat(50)));
+    console.log(chalk.bold.magenta('='.repeat(50)));
     console.log(chalk.bold.magenta(message));
-    console.log(chalk.bold.magenta('━'.repeat(50)));
+    console.log(chalk.bold.magenta('='.repeat(50)));
     console.log();
   }
 
   divider(): void {
-    console.log(chalk.gray('─'.repeat(50)));
+    console.log(chalk.gray('-'.repeat(50)));
   }
 
   waiting(message: string): void {
-    console.log(chalk.yellow('⏳'), message);
+    console.log(chalk.yellow('[wait]'), message);
   }
 
   checkStatus(name: string, status: string, conclusion: string | null): void {
     const icon = conclusion === 'success' 
-      ? chalk.green('✓') 
+      ? chalk.green('[ok]') 
       : conclusion === 'failure' 
-        ? chalk.red('✗') 
-        : chalk.yellow('○');
+        ? chalk.red('[x]') 
+        : chalk.yellow('[.]');
     const statusText = conclusion || status;
     console.log(`  ${icon} ${name}: ${statusText}`);
   }

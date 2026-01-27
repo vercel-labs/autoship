@@ -19,3 +19,13 @@ npm view zod version
 ```
 
 This ensures we don't install outdated versions that may have incompatible types or missing features.
+
+## No Emojis
+
+**Do not use emojis anywhere in this codebase.**
+
+This includes:
+- Log messages and console output
+- Comments and documentation
+- Commit messages
+- Variable names or string literals

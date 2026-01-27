@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { Command } from 'commander';
-import { input, select } from '@inquirer/prompts';
+import { text, select, isCancel, cancel } from '@clack/prompts';
 import { getRepoConfig, addRepoConfig, listRepos } from './config.js';
 import { runRelease } from './release.js';
 import { logger } from './logger.js';
@@ -30,10 +30,16 @@ program
         process.exit(1);
       }
 
-      repo = await select({
+      const selected = await select({
         message: 'Select a repository to release:',
-        choices: repos.map(r => ({ name: r, value: r })),
+        options: repos.map(r => ({ label: r, value: r })),
       });
+
+      if (isCancel(selected)) {
+        cancel('Operation cancelled');
+        process.exit(0);
+      }
+      repo = selected;
     }
 
     const config = getRepoConfig(repo);
@@ -66,21 +72,43 @@ program
   .action(async (name: string) => {
     logger.info(`Adding repository: ${name}`);
 
-    const owner = await input({
+    const ownerResult = await text({
       message: 'GitHub owner (org or user):',
-      validate: (v) => v.length > 0 || 'Owner is required',
+      validate: (v) => {
+        if (!v || v.length === 0) return 'Owner is required';
+      },
     });
 
-    const repo = await input({
+    if (isCancel(ownerResult)) {
+      cancel('Operation cancelled');
+      process.exit(0);
+    }
+    const owner = ownerResult;
+
+    const repoResult = await text({
       message: 'Repository name:',
-      default: name,
-      validate: (v) => v.length > 0 || 'Repo is required',
+      defaultValue: name,
+      validate: (v) => {
+        if (!v || v.length === 0) return 'Repo is required';
+      },
     });
 
-    const baseBranch = await input({
+    if (isCancel(repoResult)) {
+      cancel('Operation cancelled');
+      process.exit(0);
+    }
+    const repo = repoResult;
+
+    const baseBranchResult = await text({
       message: 'Base branch:',
-      default: 'main',
+      defaultValue: 'main',
     });
+
+    if (isCancel(baseBranchResult)) {
+      cancel('Operation cancelled');
+      process.exit(0);
+    }
+    const baseBranch = baseBranchResult;
 
     const cloneUrl = `https://github.com/${owner}/${repo}.git`;
 
@@ -112,7 +140,7 @@ program
     for (const repo of repos) {
       const config = getRepoConfig(repo);
       if (config) {
-        console.log(`  • ${repo} (${config.owner}/${config.repo})`);
+        console.log(`  - ${repo} (${config.owner}/${config.repo})`);
       }
     }
   });
