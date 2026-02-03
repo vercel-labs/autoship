@@ -73,10 +73,10 @@ export class GitHubOperations {
       headRefOid: string;
       state: string;
       mergeable: string;
-      merged: boolean;
+      mergedAt: string | null;
     }>(`gh pr view ${prNumber} \
       --repo "${this.config.owner}/${this.config.repo}" \
-      --json number,url,headRefName,headRefOid,state,mergeable,merged`);
+      --json number,url,headRefName,headRefOid,state,mergeable,mergedAt`);
 
     return {
       number: result.number,
@@ -87,7 +87,7 @@ export class GitHubOperations {
       },
       state: result.state,
       mergeable: result.mergeable === 'MERGEABLE',
-      merged: result.merged,
+      merged: result.mergedAt !== null,
     };
   }
 
