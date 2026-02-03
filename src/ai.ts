@@ -1,4 +1,4 @@
-import { generateText } from 'ai';
+import Anthropic from '@anthropic-ai/sdk';
 import { logger } from './logger.js';
 
 export interface DiffContext {
@@ -9,6 +9,8 @@ export interface DiffContext {
   deletions: number;
   previousVersion: string;
 }
+
+const client = new Anthropic();
 
 export async function generateChangesetMessage(
   packageName: string,
@@ -39,12 +41,18 @@ Focus on user-facing changes and benefits. Be specific about what was added, fix
 Do not include markdown formatting, bullet points, or headers. Just write the plain text description.`;
 
   try {
-    const { text } = await generateText({
-      model: 'anthropic/claude-opus-4.5',
-      prompt,
+    const response = await client.messages.create({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 1024,
+      messages: [{ role: 'user', content: prompt }],
     });
 
-    return text.trim();
+    const textBlock = response.content.find(block => block.type === 'text');
+    if (!textBlock || textBlock.type !== 'text') {
+      throw new Error('No text response from AI');
+    }
+
+    return textBlock.text.trim();
   } catch (error) {
     logger.warn(`AI generation failed: ${error instanceof Error ? error.message : String(error)}`);
     throw error;
@@ -81,12 +89,18 @@ Rules:
 Respond with ONLY one word: patch, minor, or major`;
 
   try {
-    const { text } = await generateText({
-      model: 'anthropic/claude-opus-4.5',
-      prompt,
+    const response = await client.messages.create({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 10,
+      messages: [{ role: 'user', content: prompt }],
     });
 
-    const suggestion = text.trim().toLowerCase();
+    const textBlock = response.content.find(block => block.type === 'text');
+    if (!textBlock || textBlock.type !== 'text') {
+      return 'patch';
+    }
+
+    const suggestion = textBlock.text.trim().toLowerCase();
     if (suggestion === 'major' || suggestion === 'minor' || suggestion === 'patch') {
       return suggestion;
     }

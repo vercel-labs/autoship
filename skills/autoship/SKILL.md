@@ -30,7 +30,7 @@ Before using autoship, ensure:
 gh auth login
 
 # API key for AI features
-export AI_GATEWAY_API_KEY="your-key"
+export ANTHROPIC_API_KEY="your-key"
 ```
 
 ## Essential Commands
@@ -95,7 +95,7 @@ autoship myproject -t minor -m "Added new authentication providers" -y
 
 ```bash
 # In GitHub Actions or CI pipeline
-export AI_GATEWAY_API_KEY="${{ secrets.AI_GATEWAY_API_KEY }}"
+export ANTHROPIC_API_KEY="${{ secrets.ANTHROPIC_API_KEY }}"
 npx autoship myproject -t patch -y
 ```
 
@@ -186,4 +186,4 @@ The tool will show which checks failed. Fix the issues in the target repository,
 
 ### AI generation failed
 
-If AI fails, autoship falls back to manual input. Ensure `AI_GATEWAY_API_KEY` is set.
+If AI fails, autoship falls back to manual input. Ensure `ANTHROPIC_API_KEY` is set.

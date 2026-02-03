@@ -87,7 +87,7 @@ Configured repositories:
 
 | Variable | Description | Required |
 |----------|-------------|----------|
-| `AI_GATEWAY_API_KEY` | API key for AI-powered suggestions and descriptions | Yes |
+| `ANTHROPIC_API_KEY` | API key for AI-powered suggestions and descriptions | Yes |
 | `GITHUB_TOKEN` | GitHub token (uses `gh` CLI auth by default) | No |
 
 ## Exit Codes

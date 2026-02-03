@@ -52,7 +52,7 @@ jobs:
       
       - name: Run release
         env:
-          AI_GATEWAY_API_KEY: ${{ secrets.AI_GATEWAY_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
           autoship ${{ inputs.repo || 'myproject' }} \
@@ -99,7 +99,7 @@ jobs:
       
       - name: Install and run autoship
         env:
-          AI_GATEWAY_API_KEY: ${{ secrets.AI_GATEWAY_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
           pnpm add -g autoship
@@ -114,7 +114,7 @@ Set these secrets in your CI environment:
 
 | Secret | Description |
 |--------|-------------|
-| `AI_GATEWAY_API_KEY` | API key for AI features |
+| `ANTHROPIC_API_KEY` | API key for AI features |
 | `GH_TOKEN` | GitHub token with repo access (or use `GITHUB_TOKEN`) |
 | `AUTOSHIP_CONFIG` | Contents of `~/.autoship/config.json` |
 

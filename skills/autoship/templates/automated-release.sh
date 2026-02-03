@@ -33,8 +33,8 @@ if ! gh auth status &> /dev/null; then
   exit 1
 fi
 
-if [[ -z "${AI_GATEWAY_API_KEY:-}" ]]; then
-  echo "Error: AI_GATEWAY_API_KEY environment variable not set"
+if [[ -z "${ANTHROPIC_API_KEY:-}" ]]; then
+  echo "Error: ANTHROPIC_API_KEY environment variable not set"
   exit 1
 fi
 
