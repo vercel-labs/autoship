@@ -1,5 +1,16 @@
 # Agent Instructions
 
+## Using autoship
+
+For instructions on using the autoship CLI tool, see `skills/autoship/SKILL.md`.
+
+## Code Style
+
+- Do not use emojis in code, output, or documentation. Unicode symbols are acceptable.
+- Use TypeScript for all source files.
+- Use ES modules (`import`/`export`), not CommonJS.
+- Prefer `async`/`await` over raw promises.
+
 ## Package Management
 
 **Always check the latest version before installing a package.**

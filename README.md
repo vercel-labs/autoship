@@ -98,6 +98,40 @@ npx autoship list
 
 Config is stored at `~/.autoship/config.json`.
 
+## Usage with AI Agents
+
+### Just ask the agent
+
+The simplest approach - just tell your agent to use it:
+
+```
+Use autoship to release my package. Run autoship --help to see available commands.
+```
+
+### AI Coding Assistants
+
+Add the skill to your AI coding assistant for richer context:
+
+```bash
+npx skills add vercel-labs/autoship
+```
+
+This works with Claude Code, Codex, Cursor, Gemini CLI, GitHub Copilot, Goose, OpenCode, and Windsurf.
+
+### AGENTS.md / CLAUDE.md
+
+For more consistent results, add to your project or global instructions file:
+
+```markdown
+## Package Releases
+
+Use `autoship` for releases. Run `autoship --help` for all commands.
+
+Core workflow:
+1. `autoship add <name>` - Configure repository (one-time)
+2. `autoship <name> -t patch -y` - Automated release
+```
+
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
