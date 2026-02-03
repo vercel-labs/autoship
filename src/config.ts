@@ -52,6 +52,12 @@ export function addRepoConfig(name: string, config: RepoConfig): void {
   saveConfig(stored);
 }
 
+export function removeRepoConfig(name: string): void {
+  const stored = loadStoredConfig();
+  delete stored.repos[name];
+  saveConfig(stored);
+}
+
 export function listRepos(): string[] {
   const stored = loadStoredConfig();
   return [...Object.keys(REPO_CONFIGS), ...Object.keys(stored.repos)];
