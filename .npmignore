@@ -1,0 +1,10 @@
+# Source files (dist/ is published)
+src/
+
+# Config files
+tsconfig.json
+vitest.config.ts
+
+# Dev files
+*.test.ts
+.github/
