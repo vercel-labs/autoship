@@ -47,14 +47,15 @@ export class GitOperations {
     logger.detail(`Switched to branch: ${branchName}`);
   }
 
-  async generateChangeset(options: ReleaseOptions, packageNames: string[]): Promise<string> {
+  async generateChangeset(options: ReleaseOptions, packageNames: string | string[]): Promise<string> {
     const changesetDir = path.join(this.workDir, '.changeset');
 
     // Generate a unique changeset name
     const changesetId = `release-${randomBytes(4).toString('hex')}`;
     const changesetPath = path.join(changesetDir, `${changesetId}.md`);
 
-    const packageEntries = packageNames
+    const normalizedPackageNames = Array.isArray(packageNames) ? packageNames : [packageNames];
+    const packageEntries = normalizedPackageNames
       .map(name => `"${name}": ${options.type}`)
       .join('\n');
 
