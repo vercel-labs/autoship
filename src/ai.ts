@@ -11,15 +11,19 @@ export interface DiffContext {
 }
 
 export async function generateChangesetMessage(
-  packageName: string,
+  packageNames: string[],
   releaseType: 'patch' | 'minor' | 'major',
   context: DiffContext
 ): Promise<string> {
   logger.detail('Generating changeset description with AI...');
 
+  const packageLabel = packageNames.length === 1
+    ? `Package: ${packageNames[0]}`
+    : `Packages: ${packageNames.join(', ')}`;
+
   const prompt = `You are writing a changeset description for an npm package release.
 
-Package: ${packageName}
+${packageLabel}
 Release type: ${releaseType}
 Previous version: ${context.previousVersion}
 

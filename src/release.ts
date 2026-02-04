@@ -26,9 +26,13 @@ export async function runRelease(
     await git.clone();
     spinner.succeed('Repository cloned');
 
-    const packageName = await git.getPackageName();
+    const packageNames = config.packages ?? [await git.getPackageName()];
     const currentVersion = await git.getPackageVersion();
-    logger.detail(`Package: ${packageName} @ ${currentVersion}`);
+    if (packageNames.length === 1) {
+      logger.detail(`Package: ${packageNames[0]} @ ${currentVersion}`);
+    } else {
+      logger.detail(`Packages: ${packageNames.join(', ')}`);
+    }
 
     // Find the latest version tag and get diff
     spinner = ora('Finding latest version tag...').start();
@@ -114,7 +118,7 @@ export async function runRelease(
       spinner = ora('Generating changeset description with AI...').start();
       
       try {
-        const aiMessage = await generateChangesetMessage(packageName, releaseType, diffContext);
+        const aiMessage = await generateChangesetMessage(packageNames, releaseType, diffContext);
         spinner.succeed('AI generated description');
         
         logger.blank();
@@ -189,13 +193,15 @@ export async function runRelease(
     // Step 3: Generate changeset
     logger.step(3, TOTAL_STEPS, 'Generating changeset...');
     spinner = ora('Generating changeset...').start();
-    const changesetId = await git.generateChangeset(fullOptions, packageName);
+    const changesetId = await git.generateChangeset(fullOptions, packageNames);
     spinner.succeed(`Changeset created: ${changesetId}.md`);
 
     logger.blank();
     logger.info('Changeset content:');
     logger.divider();
-    console.log(`"${packageName}": ${fullOptions.type}`);
+    for (const name of packageNames) {
+      console.log(`"${name}": ${fullOptions.type}`);
+    }
     console.log();
     console.log(fullOptions.message);
     logger.divider();
