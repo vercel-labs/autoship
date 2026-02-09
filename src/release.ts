@@ -1,4 +1,4 @@
-import { confirm, select, text, isCancel, cancel } from '@clack/prompts';
+import { confirm, select, text, isCancel, cancel, multiselect } from '@clack/prompts';
 import ora from 'ora';
 import { RepoConfig, ReleaseOptions } from './types.js';
 import { GitOperations } from './git.js';
@@ -26,7 +26,41 @@ export async function runRelease(
     await git.clone();
     spinner.succeed('Repository cloned');
 
-    const packageNames = config.packages ?? [await git.getPackageName()];
+    let packageNames: string[];
+    if (config.packages) {
+      packageNames = config.packages;
+    } else {
+      const rootName = await git.getPackageName();
+      if (rootName) {
+        packageNames = [rootName];
+      } else {
+        // Root package.json has no name — discover workspace packages
+        const workspaceNames = await git.getWorkspacePackageNames();
+        if (workspaceNames.length === 0) {
+          logger.error('No package name found in root package.json and no workspace packages detected.');
+          logger.info('Either add a "name" field to the root package.json or configure "packages" in autoship.');
+          await git.cleanup();
+          process.exit(1);
+        }
+        if (workspaceNames.length === 1) {
+          packageNames = workspaceNames;
+        } else {
+          const selected = await multiselect({
+            message: 'Select packages to include in this release:',
+            options: workspaceNames.map(name => ({ label: name, value: name })),
+            required: true,
+          });
+
+          if (isCancel(selected)) {
+            cancel('Release cancelled');
+            await git.cleanup();
+            process.exit(0);
+          }
+          packageNames = selected;
+        }
+      }
+    }
+
     const currentVersion = await git.getPackageVersion();
     if (packageNames.length === 1) {
       logger.detail(`Package: ${packageNames[0]} @ ${currentVersion}`);
