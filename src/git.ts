@@ -47,15 +47,20 @@ export class GitOperations {
     logger.detail(`Switched to branch: ${branchName}`);
   }
 
-  async generateChangeset(options: ReleaseOptions, packageName: string): Promise<string> {
+  async generateChangeset(options: ReleaseOptions, packageNames: string | string[]): Promise<string> {
     const changesetDir = path.join(this.workDir, '.changeset');
-    
+
     // Generate a unique changeset name
     const changesetId = `release-${randomBytes(4).toString('hex')}`;
     const changesetPath = path.join(changesetDir, `${changesetId}.md`);
 
+    const normalizedPackageNames = Array.isArray(packageNames) ? packageNames : [packageNames];
+    const packageEntries = normalizedPackageNames
+      .map(name => `"${name}": ${options.type}`)
+      .join('\n');
+
     const content = `---
-"${packageName}": ${options.type}
+${packageEntries}
 ---
 
 ${options.message}
@@ -63,7 +68,7 @@ ${options.message}
 
     logger.detail(`Writing changeset to ${changesetPath}`);
     fs.writeFileSync(changesetPath, content);
-    
+
     return changesetId;
   }
 
@@ -97,6 +102,37 @@ ${options.message}
     const packageJsonPath = path.join(this.workDir, 'package.json');
     const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
     return packageJson.name;
+  }
+
+  async getWorkspacePackageNames(): Promise<string[]> {
+    const rootPkgPath = path.join(this.workDir, 'package.json');
+    const rootPkg = JSON.parse(fs.readFileSync(rootPkgPath, 'utf-8'));
+
+    const workspaceGlobs: string[] | undefined = rootPkg.workspaces;
+    if (!workspaceGlobs || workspaceGlobs.length === 0) {
+      return [];
+    }
+
+    const names: string[] = [];
+    for (const pattern of workspaceGlobs) {
+      // Resolve simple "dir/*" workspace globs by listing the parent directory
+      const baseDir = pattern.replace(/\/?\*$/, '');
+      const fullBase = path.join(this.workDir, baseDir);
+      if (!fs.existsSync(fullBase)) continue;
+
+      const entries = fs.readdirSync(fullBase, { withFileTypes: true });
+      for (const entry of entries) {
+        if (!entry.isDirectory()) continue;
+        const pkgPath = path.join(fullBase, entry.name, 'package.json');
+        if (fs.existsSync(pkgPath)) {
+          const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'));
+          if (pkg.name && !pkg.private) {
+            names.push(pkg.name);
+          }
+        }
+      }
+    }
+    return names;
   }
 
   async getPackageVersion(): Promise<string> {

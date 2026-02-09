@@ -115,6 +115,24 @@ describe('GitOperations', () => {
       );
     });
 
+    it('should include all package entries for multiple packages', async () => {
+      vi.mocked(fs.writeFileSync).mockImplementation(() => {});
+
+      await gitOps.generateChangeset(
+        { type: 'minor', message: 'Test message' },
+        ['pkg-a', 'pkg-b']
+      );
+
+      expect(fs.writeFileSync).toHaveBeenCalledWith(
+        '/mock/tmp/autoship/test-repo-abcd1234/.changeset/release-abcd1234.md',
+        expect.stringContaining('"pkg-a": minor')
+      );
+      expect(fs.writeFileSync).toHaveBeenCalledWith(
+        '/mock/tmp/autoship/test-repo-abcd1234/.changeset/release-abcd1234.md',
+        expect.stringContaining('"pkg-b": minor')
+      );
+    });
+
     it('should include message in changeset', async () => {
       vi.mocked(fs.writeFileSync).mockImplementation(() => {});
 
