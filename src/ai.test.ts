@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { generateChangesetMessage, suggestReleaseType, DiffContext } from './ai.js';
 
 vi.mock('ai', () => ({
@@ -13,6 +13,26 @@ vi.mock('./logger.js', () => ({
 }));
 
 import { generateText } from 'ai';
+
+function mockGenerateText(text: string): void {
+  vi.mocked(generateText).mockResolvedValue({
+    text,
+    finishReason: 'stop',
+    usage: { promptTokens: 100, completionTokens: 20 },
+    response: { id: 'test', timestamp: new Date(), modelId: 'test', headers: {} },
+    request: {},
+    warnings: [],
+    steps: [],
+    toolCalls: [],
+    toolResults: [],
+    reasoning: undefined,
+    reasoningDetails: [],
+    sources: [],
+    experimental_providerMetadata: undefined,
+    providerMetadata: undefined,
+    files: [],
+  } as ReturnType<typeof generateText> extends Promise<infer T> ? T : never);
+}
 
 describe('ai', () => {
   const mockDiffContext: DiffContext = {
@@ -30,28 +50,7 @@ describe('ai', () => {
 
   describe('generateChangesetMessage', () => {
     it('should generate changeset message from AI', async () => {
-      vi.mocked(generateText).mockResolvedValue({
-        text: 'Added new feature and fixed critical bug.',
-        finishReason: 'stop',
-        usage: { promptTokens: 100, completionTokens: 20 },
-        response: { 
-          id: 'test', 
-          timestamp: new Date(), 
-          modelId: 'test',
-          headers: {}
-        },
-        request: {},
-        warnings: [],
-        steps: [],
-        toolCalls: [],
-        toolResults: [],
-        reasoning: undefined,
-        reasoningDetails: [],
-        sources: [],
-        experimental_providerMetadata: undefined,
-        providerMetadata: undefined,
-        files: [],
-      } as ReturnType<typeof generateText> extends Promise<infer T> ? T : never);
+      mockGenerateText('Added new feature and fixed critical bug.');
 
       const result = await generateChangesetMessage('my-package', 'minor', mockDiffContext);
       
@@ -59,6 +58,18 @@ describe('ai', () => {
       expect(generateText).toHaveBeenCalledWith(
         expect.objectContaining({
           model: 'anthropic/claude-opus-4.5',
+        })
+      );
+    });
+
+    it('should include multiple packages in the prompt label', async () => {
+      mockGenerateText('Updated multiple packages.');
+
+      await generateChangesetMessage(['pkg-a', 'pkg-b'], 'minor', mockDiffContext);
+
+      expect(generateText).toHaveBeenCalledWith(
+        expect.objectContaining({
+          prompt: expect.stringContaining('Packages: pkg-a, pkg-b'),
         })
       );
     });
@@ -72,28 +83,7 @@ describe('ai', () => {
     });
 
     it('should trim whitespace from AI response', async () => {
-      vi.mocked(generateText).mockResolvedValue({
-        text: '  Message with whitespace  \n',
-        finishReason: 'stop',
-        usage: { promptTokens: 100, completionTokens: 20 },
-        response: { 
-          id: 'test', 
-          timestamp: new Date(), 
-          modelId: 'test',
-          headers: {}
-        },
-        request: {},
-        warnings: [],
-        steps: [],
-        toolCalls: [],
-        toolResults: [],
-        reasoning: undefined,
-        reasoningDetails: [],
-        sources: [],
-        experimental_providerMetadata: undefined,
-        providerMetadata: undefined,
-        files: [],
-      } as ReturnType<typeof generateText> extends Promise<infer T> ? T : never);
+      mockGenerateText('  Message with whitespace  \n');
 
       const result = await generateChangesetMessage('my-package', 'patch', mockDiffContext);
       
@@ -115,28 +105,7 @@ describe('ai', () => {
     });
 
     it('should return AI suggested release type', async () => {
-      vi.mocked(generateText).mockResolvedValue({
-        text: 'minor',
-        finishReason: 'stop',
-        usage: { promptTokens: 100, completionTokens: 5 },
-        response: { 
-          id: 'test', 
-          timestamp: new Date(), 
-          modelId: 'test',
-          headers: {}
-        },
-        request: {},
-        warnings: [],
-        steps: [],
-        toolCalls: [],
-        toolResults: [],
-        reasoning: undefined,
-        reasoningDetails: [],
-        sources: [],
-        experimental_providerMetadata: undefined,
-        providerMetadata: undefined,
-        files: [],
-      } as ReturnType<typeof generateText> extends Promise<infer T> ? T : never);
+      mockGenerateText('minor');
 
       const result = await suggestReleaseType(mockDiffContext);
       
@@ -144,28 +113,7 @@ describe('ai', () => {
     });
 
     it('should return major when AI suggests major', async () => {
-      vi.mocked(generateText).mockResolvedValue({
-        text: 'MAJOR',
-        finishReason: 'stop',
-        usage: { promptTokens: 100, completionTokens: 5 },
-        response: { 
-          id: 'test', 
-          timestamp: new Date(), 
-          modelId: 'test',
-          headers: {}
-        },
-        request: {},
-        warnings: [],
-        steps: [],
-        toolCalls: [],
-        toolResults: [],
-        reasoning: undefined,
-        reasoningDetails: [],
-        sources: [],
-        experimental_providerMetadata: undefined,
-        providerMetadata: undefined,
-        files: [],
-      } as ReturnType<typeof generateText> extends Promise<infer T> ? T : never);
+      mockGenerateText('MAJOR');
 
       const result = await suggestReleaseType(mockDiffContext);
       
@@ -173,28 +121,7 @@ describe('ai', () => {
     });
 
     it('should default to patch for invalid AI response', async () => {
-      vi.mocked(generateText).mockResolvedValue({
-        text: 'invalid response',
-        finishReason: 'stop',
-        usage: { promptTokens: 100, completionTokens: 5 },
-        response: { 
-          id: 'test', 
-          timestamp: new Date(), 
-          modelId: 'test',
-          headers: {}
-        },
-        request: {},
-        warnings: [],
-        steps: [],
-        toolCalls: [],
-        toolResults: [],
-        reasoning: undefined,
-        reasoningDetails: [],
-        sources: [],
-        experimental_providerMetadata: undefined,
-        providerMetadata: undefined,
-        files: [],
-      } as ReturnType<typeof generateText> extends Promise<infer T> ? T : never);
+      mockGenerateText('invalid response');
 
       const result = await suggestReleaseType(mockDiffContext);
       

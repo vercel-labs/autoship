@@ -1,4 +1,4 @@
-import { confirm, select, text, isCancel, cancel } from '@clack/prompts';
+import { confirm, select, text, isCancel, cancel, multiselect } from '@clack/prompts';
 import ora from 'ora';
 import { RepoConfig, ReleaseOptions } from './types.js';
 import { GitOperations } from './git.js';
@@ -26,9 +26,47 @@ export async function runRelease(
     await git.clone();
     spinner.succeed('Repository cloned');
 
-    const packageName = await git.getPackageName();
+    let packageNames: string[];
+    if (config.packages) {
+      packageNames = config.packages;
+    } else {
+      const rootName = await git.getPackageName();
+      if (rootName) {
+        packageNames = [rootName];
+      } else {
+        // Root package.json has no name — discover workspace packages
+        const workspaceNames = await git.getWorkspacePackageNames();
+        if (workspaceNames.length === 0) {
+          logger.error('No package name found in root package.json and no workspace packages detected.');
+          logger.info('Either add a "name" field to the root package.json or configure "packages" in autoship.');
+          await git.cleanup();
+          process.exit(1);
+        }
+        if (workspaceNames.length === 1) {
+          packageNames = workspaceNames;
+        } else {
+          const selected = await multiselect({
+            message: 'Select packages to include in this release:',
+            options: workspaceNames.map(name => ({ label: name, value: name })),
+            required: true,
+          });
+
+          if (isCancel(selected)) {
+            cancel('Release cancelled');
+            await git.cleanup();
+            process.exit(0);
+          }
+          packageNames = selected;
+        }
+      }
+    }
+
     const currentVersion = await git.getPackageVersion();
-    logger.detail(`Package: ${packageName} @ ${currentVersion}`);
+    if (packageNames.length === 1) {
+      logger.detail(`Package: ${packageNames[0]} @ ${currentVersion}`);
+    } else {
+      logger.detail(`Packages: ${packageNames.join(', ')}`);
+    }
 
     // Find the latest version tag and get diff
     spinner = ora('Finding latest version tag...').start();
@@ -114,7 +152,7 @@ export async function runRelease(
       spinner = ora('Generating changeset description with AI...').start();
       
       try {
-        const aiMessage = await generateChangesetMessage(packageName, releaseType, diffContext);
+        const aiMessage = await generateChangesetMessage(packageNames, releaseType, diffContext);
         spinner.succeed('AI generated description');
         
         logger.blank();
@@ -189,13 +227,15 @@ export async function runRelease(
     // Step 3: Generate changeset
     logger.step(3, TOTAL_STEPS, 'Generating changeset...');
     spinner = ora('Generating changeset...').start();
-    const changesetId = await git.generateChangeset(fullOptions, packageName);
+    const changesetId = await git.generateChangeset(fullOptions, packageNames);
     spinner.succeed(`Changeset created: ${changesetId}.md`);
 
     logger.blank();
     logger.info('Changeset content:');
     logger.divider();
-    console.log(`"${packageName}": ${fullOptions.type}`);
+    for (const name of packageNames) {
+      console.log(`"${name}": ${fullOptions.type}`);
+    }
     console.log();
     console.log(fullOptions.message);
     logger.divider();

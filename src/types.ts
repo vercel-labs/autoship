@@ -3,6 +3,7 @@ export interface RepoConfig {
   repo: string;
   baseBranch: string;
   cloneUrl: string;
+  packages?: string[];
 }
 
 export interface ReleaseOptions {
