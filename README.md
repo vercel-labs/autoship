@@ -1,5 +1,12 @@
 # autoship
 
+<p>
+  <a href="https://vercel.com/labs#past-experiments"><img alt="Vercel Labs Experiment" src="https://img.shields.io/badge/Labs%20Experiment-000000.svg?style=for-the-badge&amp;logo=Vercel&amp;labelColor=000" height="28"></a>
+  <a href="https://www.npmjs.com/package/autoship"><img alt="npm version: autoship" src="https://img.shields.io/npm/v/autoship.svg?style=for-the-badge&amp;labelColor=000000" height="28"></a>
+  <a href="https://github.com/vercel-labs/autoship/blob/main/LICENSE"><img alt="License: Apache-2.0" src="https://img.shields.io/github/license/vercel-labs/autoship.svg?style=for-the-badge&amp;labelColor=000000" height="28"></a>
+  <a href="https://www.npmjs.com/package/autoship"><img alt="npm downloads per month: autoship" src="https://img.shields.io/npm/dm/autoship.svg?style=for-the-badge&amp;labelColor=000000&amp;label=npm%20downloads" height="28"></a>
+</p>
+
 CLI tool to automate changeset-based releases with AI-generated descriptions.
 
 ## Features
