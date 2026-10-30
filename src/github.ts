@@ -1,4 +1,4 @@
-import { execSync, spawn } from 'child_process';
+import { execFileSync, spawn } from 'child_process';
 import { RepoConfig, PullRequest, CheckRun } from './types.js';
 import { logger } from './logger.js';
 
@@ -9,14 +9,31 @@ export class GitHubOperations {
     this.config = config;
   }
 
-  private exec(command: string): string {
-    logger.detail(`Running: ${command}`);
-    return execSync(command, { encoding: 'utf-8' }).trim();
+  private get repoSlug(): string {
+    return `${this.config.owner}/${this.config.repo}`;
   }
 
-  private execJson<T>(command: string): T {
-    const output = this.exec(command);
+  private exec(args: string[]): string {
+    logger.detail(`Running: gh ${args.join(' ')}`);
+    return execFileSync('gh', args, { encoding: 'utf-8' }).trim();
+  }
+
+  private execJson<T>(args: string[]): T {
+    const output = this.exec(args);
     return JSON.parse(output) as T;
+  }
+
+  /** Runs gh and returns its combined output even when it exits non-zero. */
+  private execAllowFailure(args: string[]): string {
+    try {
+      return execFileSync('gh', args, {
+        encoding: 'utf-8',
+        stdio: ['ignore', 'pipe', 'pipe'],
+      }).trim();
+    } catch (error) {
+      const { stdout = '', stderr = '' } = error as { stdout?: string; stderr?: string };
+      return `${stdout}${stderr}`.trim();
+    }
   }
 
   async createPullRequest(
@@ -29,12 +46,14 @@ export class GitHubOperations {
     logger.detail(`  Base: ${this.config.baseBranch}`);
 
     // Create the PR (returns the URL)
-    const prUrl = this.exec(`gh pr create \
-      --repo "${this.config.owner}/${this.config.repo}" \
-      --head "${branchName}" \
-      --base "${this.config.baseBranch}" \
-      --title "${title.replace(/"/g, '\\"')}" \
-      --body "${body.replace(/"/g, '\\"')}"`);
+    const prUrl = this.exec([
+      'pr', 'create',
+      '--repo', this.repoSlug,
+      '--head', branchName,
+      '--base', this.config.baseBranch,
+      '--title', title,
+      '--body', body,
+    ]);
 
     // Extract PR number from URL (e.g., https://github.com/owner/repo/pull/123)
     const prNumberMatch = prUrl.match(/\/pull\/(\d+)/);
@@ -50,9 +69,7 @@ export class GitHubOperations {
       headRefName: string;
       headRefOid: string;
       state: string;
-    }>(`gh pr view ${prNumber} \
-      --repo "${this.config.owner}/${this.config.repo}" \
-      --json number,url,headRefName,headRefOid,state`);
+    }>(['pr', 'view', String(prNumber), '--repo', this.repoSlug, '--json', 'number,url,headRefName,headRefOid,state']);
 
     return {
       number: result.number,
@@ -74,9 +91,7 @@ export class GitHubOperations {
       state: string;
       mergeable: string;
       merged: boolean;
-    }>(`gh pr view ${prNumber} \
-      --repo "${this.config.owner}/${this.config.repo}" \
-      --json number,url,headRefName,headRefOid,state,mergeable,merged`);
+    }>(['pr', 'view', String(prNumber), '--repo', this.repoSlug, '--json', 'number,url,headRefName,headRefOid,state,mergeable,merged']);
 
     return {
       number: result.number,
@@ -101,9 +116,7 @@ export class GitHubOperations {
           conclusion: string;
           workflowName?: string;
         }>;
-      }>(`gh pr checks ${prNumber} \
-        --repo "${this.config.owner}/${this.config.repo}" \
-        --json name,status,conclusion,workflowName 2>/dev/null || echo '{"statusCheckRollup":[]}'`);
+      }>(['pr', 'checks', String(prNumber), '--repo', this.repoSlug, '--json', 'name,status,conclusion,workflowName']);
 
       if (!result.statusCheckRollup) {
         return [];
@@ -163,9 +176,7 @@ export class GitHubOperations {
       let checks: CheckRun[];
       
       try {
-        const output = this.exec(
-          `gh pr checks ${prNumber} --repo "${this.config.owner}/${this.config.repo}" 2>&1 || true`
-        );
+        const output = this.execAllowFailure(['pr', 'checks', String(prNumber), '--repo', this.repoSlug]);
         
         // Parse the tabular output from gh pr checks
         const lines = output.split('\n').filter(line => line.trim());
@@ -246,11 +257,7 @@ export class GitHubOperations {
   async mergePullRequest(prNumber: number, mergeMethod: 'merge' | 'squash' | 'rebase' = 'squash'): Promise<void> {
     logger.detail(`Merging PR #${prNumber} using ${mergeMethod} (admin)...`);
     
-    this.exec(`gh pr merge ${prNumber} \
-      --repo "${this.config.owner}/${this.config.repo}" \
-      --${mergeMethod} \
-      --admin \
-      --delete-branch`);
+    this.exec(['pr', 'merge', String(prNumber), '--repo', this.repoSlug, `--${mergeMethod}`, '--admin', '--delete-branch']);
     
     logger.detail('PR merged successfully');
   }
@@ -271,11 +278,13 @@ export class GitHubOperations {
         headRefOid: string;
         state: string;
         title: string;
-      }>>(`gh pr list \
-        --repo "${this.config.owner}/${this.config.repo}" \
-        --state open \
-        --head "changeset-release/${this.config.baseBranch}" \
-        --json number,url,headRefName,headRefOid,state,title`);
+      }>>([
+        'pr', 'list',
+        '--repo', this.repoSlug,
+        '--state', 'open',
+        '--head', `changeset-release/${this.config.baseBranch}`,
+        '--json', 'number,url,headRefName,headRefOid,state,title',
+      ]);
 
       if (result.length > 0) {
         const pr = result[0];
