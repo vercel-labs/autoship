@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
 import { GitHubOperations } from './github.js';
 import type { RepoConfig } from './types.js';
 
 vi.mock('child_process', () => ({
-  execSync: vi.fn(),
+  execFileSync: vi.fn(),
   spawn: vi.fn(),
 }));
 
@@ -34,7 +34,7 @@ describe('GitHubOperations', () => {
 
   describe('createPullRequest', () => {
     it('should create pull request and return PR details', async () => {
-      vi.mocked(execSync)
+      vi.mocked(execFileSync)
         .mockReturnValueOnce('https://github.com/test-org/test-repo/pull/42')
         .mockReturnValueOnce(
           JSON.stringify({
@@ -58,8 +58,31 @@ describe('GitHubOperations', () => {
       expect(pr.head.sha).toBe('abc123');
     });
 
+    it('should pass title and body as literal arguments without a shell', async () => {
+      vi.mocked(execFileSync)
+        .mockReturnValueOnce('https://github.com/test-org/test-repo/pull/42')
+        .mockReturnValueOnce(
+          JSON.stringify({
+            number: 42,
+            url: 'https://github.com/test-org/test-repo/pull/42',
+            headRefName: 'feature/test',
+            headRefOid: 'abc123',
+            state: 'OPEN',
+          })
+        );
+      const body = 'Changes: $(touch /tmp/pwned) `id` "quoted"';
+
+      await githubOps.createPullRequest('feature/test', 'Test PR', body);
+
+      expect(execFileSync).toHaveBeenCalledWith(
+        'gh',
+        expect.arrayContaining(['--body', body]),
+        expect.any(Object)
+      );
+    });
+
     it('should throw error if PR URL cannot be parsed', async () => {
-      vi.mocked(execSync).mockReturnValueOnce('invalid url');
+      vi.mocked(execFileSync).mockReturnValueOnce('invalid url');
 
       await expect(
         githubOps.createPullRequest('feature/test', 'Test PR', 'PR body')
@@ -69,7 +92,7 @@ describe('GitHubOperations', () => {
 
   describe('getPullRequest', () => {
     it('should return pull request details', async () => {
-      vi.mocked(execSync).mockReturnValueOnce(
+      vi.mocked(execFileSync).mockReturnValueOnce(
         JSON.stringify({
           number: 42,
           url: 'https://github.com/test-org/test-repo/pull/42',
@@ -89,7 +112,7 @@ describe('GitHubOperations', () => {
     });
 
     it('should handle non-mergeable PR', async () => {
-      vi.mocked(execSync).mockReturnValueOnce(
+      vi.mocked(execFileSync).mockReturnValueOnce(
         JSON.stringify({
           number: 42,
           url: 'https://github.com/test-org/test-repo/pull/42',
@@ -109,7 +132,7 @@ describe('GitHubOperations', () => {
 
   describe('getCheckRuns', () => {
     it('should return check runs', async () => {
-      vi.mocked(execSync).mockReturnValueOnce(
+      vi.mocked(execFileSync).mockReturnValueOnce(
         JSON.stringify({
           statusCheckRollup: [
             {
@@ -132,7 +155,7 @@ describe('GitHubOperations', () => {
     });
 
     it('should return empty array on error', async () => {
-      vi.mocked(execSync).mockImplementationOnce(() => {
+      vi.mocked(execFileSync).mockImplementationOnce(() => {
         throw new Error('Command failed');
       });
 
@@ -142,7 +165,7 @@ describe('GitHubOperations', () => {
     });
 
     it('should handle empty status check rollup', async () => {
-      vi.mocked(execSync).mockReturnValueOnce(
+      vi.mocked(execFileSync).mockReturnValueOnce(
         JSON.stringify({ statusCheckRollup: null })
       );
 
@@ -154,23 +177,25 @@ describe('GitHubOperations', () => {
 
   describe('mergePullRequest', () => {
     it('should merge pull request with squash by default', async () => {
-      vi.mocked(execSync).mockReturnValueOnce('');
+      vi.mocked(execFileSync).mockReturnValueOnce('');
 
       await githubOps.mergePullRequest(42);
 
-      expect(execSync).toHaveBeenCalledWith(
-        expect.stringContaining('--squash'),
+      expect(execFileSync).toHaveBeenCalledWith(
+        'gh',
+        expect.arrayContaining(['--squash']),
         expect.any(Object)
       );
     });
 
     it('should use specified merge method', async () => {
-      vi.mocked(execSync).mockReturnValueOnce('');
+      vi.mocked(execFileSync).mockReturnValueOnce('');
 
       await githubOps.mergePullRequest(42, 'rebase');
 
-      expect(execSync).toHaveBeenCalledWith(
-        expect.stringContaining('--rebase'),
+      expect(execFileSync).toHaveBeenCalledWith(
+        'gh',
+        expect.arrayContaining(['--rebase']),
         expect.any(Object)
       );
     });
@@ -178,7 +203,7 @@ describe('GitHubOperations', () => {
 
   describe('findVersionPackagesPR', () => {
     it('should find version packages PR', async () => {
-      vi.mocked(execSync).mockReturnValueOnce(
+      vi.mocked(execFileSync).mockReturnValueOnce(
         JSON.stringify([
           {
             number: 100,
@@ -199,7 +224,7 @@ describe('GitHubOperations', () => {
     });
 
     it('should return null if no PR found', async () => {
-      vi.mocked(execSync).mockReturnValueOnce(JSON.stringify([]));
+      vi.mocked(execFileSync).mockReturnValueOnce(JSON.stringify([]));
 
       const pr = await githubOps.findVersionPackagesPR();
 
@@ -207,7 +232,7 @@ describe('GitHubOperations', () => {
     });
 
     it('should return null on error', async () => {
-      vi.mocked(execSync).mockImplementationOnce(() => {
+      vi.mocked(execFileSync).mockImplementationOnce(() => {
         throw new Error('Command failed');
       });
 
@@ -219,7 +244,7 @@ describe('GitHubOperations', () => {
 
   describe('status mapping', () => {
     it('should map COMPLETED status correctly', async () => {
-      vi.mocked(execSync).mockReturnValueOnce(
+      vi.mocked(execFileSync).mockReturnValueOnce(
         JSON.stringify({
           statusCheckRollup: [
             {
@@ -237,7 +262,7 @@ describe('GitHubOperations', () => {
     });
 
     it('should map IN_PROGRESS status correctly', async () => {
-      vi.mocked(execSync).mockReturnValueOnce(
+      vi.mocked(execFileSync).mockReturnValueOnce(
         JSON.stringify({
           statusCheckRollup: [
             {
@@ -255,7 +280,7 @@ describe('GitHubOperations', () => {
     });
 
     it('should map PENDING status to in_progress', async () => {
-      vi.mocked(execSync).mockReturnValueOnce(
+      vi.mocked(execFileSync).mockReturnValueOnce(
         JSON.stringify({
           statusCheckRollup: [
             {
@@ -275,7 +300,7 @@ describe('GitHubOperations', () => {
 
   describe('conclusion mapping', () => {
     it('should map SUCCESS conclusion correctly', async () => {
-      vi.mocked(execSync).mockReturnValueOnce(
+      vi.mocked(execFileSync).mockReturnValueOnce(
         JSON.stringify({
           statusCheckRollup: [
             { name: 'test', status: 'COMPLETED', conclusion: 'SUCCESS' },
@@ -289,7 +314,7 @@ describe('GitHubOperations', () => {
     });
 
     it('should map FAILURE conclusion correctly', async () => {
-      vi.mocked(execSync).mockReturnValueOnce(
+      vi.mocked(execFileSync).mockReturnValueOnce(
         JSON.stringify({
           statusCheckRollup: [
             { name: 'test', status: 'COMPLETED', conclusion: 'FAILURE' },
@@ -303,7 +328,7 @@ describe('GitHubOperations', () => {
     });
 
     it('should map SKIPPED conclusion correctly', async () => {
-      vi.mocked(execSync).mockReturnValueOnce(
+      vi.mocked(execFileSync).mockReturnValueOnce(
         JSON.stringify({
           statusCheckRollup: [
             { name: 'test', status: 'COMPLETED', conclusion: 'SKIPPED' },
@@ -317,7 +342,7 @@ describe('GitHubOperations', () => {
     });
 
     it('should map CANCELLED conclusion correctly', async () => {
-      vi.mocked(execSync).mockReturnValueOnce(
+      vi.mocked(execFileSync).mockReturnValueOnce(
         JSON.stringify({
           statusCheckRollup: [
             { name: 'test', status: 'COMPLETED', conclusion: 'CANCELLED' },
